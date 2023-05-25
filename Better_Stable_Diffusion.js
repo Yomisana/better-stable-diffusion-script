@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better_Stable_Diffusion
-// @namespace    http://tampermonkey.net/
+// @namespace    civitai-bsd-script
 // @version      0.1
 // @description  try to take over the world! Just Kidding ;)
 // @author       Yomisana and Mjolnir Studio Team
@@ -31,6 +31,7 @@
                     },
                     onerror: function(err){
                         console.log(err);
+                        alert('Connecting to backend faild. Please check your BSD application.');
                     }
                 });
             });
