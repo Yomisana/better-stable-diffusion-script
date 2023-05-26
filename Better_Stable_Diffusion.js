@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Better_Stable_Diffusion
 // @namespace    civitai-bsd-script
-// @version      0.1
+// @version      0.6
 // @description  try to take over the world! Just Kidding ;)
 // @author       Yomisana and Mjolnir Studio Team
 // @match        https://civitai.com/*
@@ -19,24 +19,29 @@
     'use strict';
 
     var timer = setInterval(() => {
-        if ($('.CUSTOM_BTN').length > 0) {
-            $('body').on('click', '.CUSTOM_BTN', function() {
-                let url = location.origin + $(this).prev().find('a[href]').attr('href');
-                GM_xmlhttpRequest({
-                    method: "GET",
-                    url: "http://localhost:7858/?url=" + url,
-                    onload: function(response) {
-                        console.log(response);
-                        showNotification(`[BSD]: 傳送成功!成功將資料傳送至BSD軟體。`, 'success');
-                    },
-                    onerror: function(err) {
-                        console.log(err);
-                        showNotification(`[BSD]: 傳送失敗!無法將資料傳送至BSD軟體。`, 'error');
-                    }
+        if ($('.CUSTOM_BTN[data-register="false"]').length > 0) {
+            $('.CUSTOM_BTN[data-register="false"]').each(function(){
+                $(this).on('click', function() {
+                    alert();
+                    let url = location.origin + $(this).prev().find('a[href]').attr('href');
+                    GM_xmlhttpRequest({
+                        method: "GET",
+                        url: "http://localhost:7858/?url=" + url,
+                        onload: function(response) {
+                            console.log(response);
+                            showNotification(`[BSD]: 傳送成功!成功將資料傳送至BSD軟體。`, 'success');
+                        },
+                        onerror: function(err) {
+                            console.log(err);
+                            showNotification(`[BSD]: 傳送失敗!無法將資料傳送至BSD軟體。`, 'error');
+                        }
+                    });
                 });
+
+                $(this).attr('data-register', true);
             });
-        } else if($('a[href^="/api/download/models/"]').length > 0){
-            $('a[href^="/api/download/models/"]').parent().after('<button class="mantine-luyglw CUSTOM_BTN" style="text-align: center;" type="button" data-button="true">BSD</button>');
+        } else if($('a[href^="/api/download/models/"]').length > 0 && $('.CUSTOM_BTN').length === 0){
+            $('a[href^="/api/download/models/"]').parent().after('<button class="mantine-luyglw CUSTOM_BTN" style="text-align: center;" type="button" data-register="false" data-button="true">BSD</button>');
         }
     }, 250);
 
