@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Better_Stable_Diffusion
 // @namespace    civitai-bsd-script
-// @version      0.6
+// @version      0.16
 // @description  try to take over the world! Just Kidding ;)
 // @author       Yomisana and Mjolnir Studio Team
 // @match        https://civitai.com/*
@@ -22,7 +22,6 @@
         if ($('.CUSTOM_BTN[data-register="false"]').length > 0) {
             $('.CUSTOM_BTN[data-register="false"]').each(function(){
                 $(this).on('click', function() {
-                    //alert();
                     var $btn = $(this);
                     let url = location.origin + $(this).prev().find('a[href]').attr('href');
 
