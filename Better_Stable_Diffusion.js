@@ -23,17 +23,22 @@
             $('.CUSTOM_BTN[data-register="false"]').each(function(){
                 $(this).on('click', function() {
                     //alert();
+                    var $btn = $(this);
                     let url = location.origin + $(this).prev().find('a[href]').attr('href');
+
+                    $btn.text('...');
                     GM_xmlhttpRequest({
                         method: "GET",
                         url: "http://localhost:7858/?url=" + url,
                         onload: function(response) {
                             console.log(response);
                             showNotification(`[BSD]: 傳送成功!成功將資料傳送至BSD軟體。`, 'success', 1500);
+                            $btn.text('BSD');
                         },
                         onerror: function(err) {
                             console.log(err);
                             showNotification(`[BSD]: 傳送失敗!無法將資料傳送至BSD軟體。`, 'error', 1500);
+                            $btn.text('BSD');
                         }
                     });
                 });
