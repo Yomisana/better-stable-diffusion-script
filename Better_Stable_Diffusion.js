@@ -20,7 +20,9 @@
 
     var timer = setInterval(() => {
         if ($('.CUSTOM_BTN').length > 0) {
-            $('body').on('click', '.CUSTOM_BTN', function() {
+            clearInterval(timer);
+
+            $('body').on('click', '.CUSTOM_BTN[data-register="false"]', function() {
                 let url = location.origin + $(this).prev().find('a[href]').attr('href');
                 GM_xmlhttpRequest({
                     method: "GET",
@@ -34,9 +36,10 @@
                         showNotification(`[BSD]: 傳送失敗!無法將資料傳送至BSD軟體。`, 'error');
                     }
                 });
+                $(this).attr('data-register', 'true');
             });
-        } else if($('a[href^="/api/download/models/"]').length > 0){
-            $('a[href^="/api/download/models/"]').parent().after('<button class="mantine-luyglw CUSTOM_BTN" style="text-align: center;" type="button" data-button="true">BSD</button>');
+        } else if ($('a[href^="/api/download/models/"]').length > 0) {
+            $('a[href^="/api/download/models/"]').parent().after('<button class="mantine-luyglw CUSTOM_BTN" style="text-align: center;" type="button" data-register="false" data-button="true">BSD</button>');
         }
     }, 250);
 
