@@ -25,7 +25,7 @@
                 let url = location.origin + $(this).prev().find('a[href]').attr('href');
                 GM_xmlhttpRequest({
                     method: "GET",
-                    url: "http://localhost:7868/?url="+url,
+                    url: "http://localhost:7858/?url="+url,
                     onload: function(response) {
                         console.log(response);
                     },
