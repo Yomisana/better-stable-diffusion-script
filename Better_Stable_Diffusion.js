@@ -4,7 +4,7 @@
 // @version      0.1
 // @description  try to take over the world! Just Kidding ;)
 // @author       Yomisana and Mjolnir Studio Team
-// @match        https://civitai.com/models/*
+// @match        https://civitai.com/*
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
@@ -20,8 +20,6 @@
 
     var timer = setInterval(() => {
         if ($('.CUSTOM_BTN').length > 0) {
-            clearInterval(timer);
-
             $('body').on('click', '.CUSTOM_BTN', function() {
                 let url = location.origin + $(this).prev().find('a[href]').attr('href');
                 GM_xmlhttpRequest({
@@ -37,7 +35,7 @@
                     }
                 });
             });
-        } else {
+        } else if($('a[href^="/api/download/models/"]').length > 0){
             $('a[href^="/api/download/models/"]').parent().after('<button class="mantine-luyglw CUSTOM_BTN" style="text-align: center;" type="button" data-button="true">BSD</button>');
         }
     }, 250);
