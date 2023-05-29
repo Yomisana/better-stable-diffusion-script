@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Better_Stable_Diffusion
 // @namespace    civitai-bsd-script
-// @version      0.16
+// @version      0.17
 // @description  try to take over the world! Just Kidding ;)
 // @author       Yomisana and Mjolnir Studio Team
 // @match        https://civitai.com/*
@@ -25,21 +25,23 @@
                     var $btn = $(this);
                     let url = location.origin + $(this).prev().find('a[href]').attr('href');
 
+                    // v2 版本，按下按鈕後可以選擇當前頁面上面預覽圖做為模型在SD上面的預覽圖
                     $btn.text('...');
-                    GM_xmlhttpRequest({
-                        method: "GET",
-                        url: "http://localhost:7858/?url=" + url,
-                        onload: function(response) {
-                            console.log(response);
-                            showNotification(`[BSD]: 傳送成功!成功將資料傳送至BSD軟體。`, 'success', 1500);
-                            $btn.text('BSD');
-                        },
-                        onerror: function(err) {
-                            console.log(err);
-                            showNotification(`[BSD]: 傳送失敗!無法將資料傳送至BSD軟體。`, 'error', 1500);
-                            $btn.text('BSD');
+                    let imageSrcList = [];
+                    $('.mantine-7aj0so').each(function() {
+                        let src = $(this).attr('src');
+                        let regex = /^(https?:\/\/[^/]+\/[^/]+\/[^/]+\/)/; // 正規化
+                        let match = src.match(regex);
+                        if (match) {
+                            let baseUrl = match[1];
+                            let modifiedUrl = baseUrl + 'width=400,height=600/preview.png';
+                            if (!imageSrcList.includes(modifiedUrl)) {
+                                imageSrcList.push(modifiedUrl);
+                            }
                         }
                     });
+                    console.log(`[BSD] Model preview images: ${imageSrcList.length}`);
+                    createImageSelectionWindow($btn, url, imageSrcList); // 顯示選擇預覽圖視窗 在 傳送的按鈕內進行傳輸
                 });
 
                 $(this).attr('data-register', true);
@@ -49,6 +51,132 @@
         }
     }, 250);
 
+    // 圖片選擇視窗
+    function createImageSelectionWindow($btn, url, imageSrcList) {
+        let container = document.createElement('div');
+        container.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        `;
+
+        let childWindow = document.createElement('div');
+        childWindow.style.cssText = `
+            background-color: #fff;
+            padding: 20px;
+            max-width: 90%;
+            max-height: 75%;
+            overflow: auto;
+            box-sizing: border-box;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: flex-start;
+            position: relative;
+            z-index: 9999;
+        `;
+
+        // 標題
+        let title = document.createElement('h1');
+        title.textContent = 'Select Image of preview';
+        childWindow.appendChild(title);
+        title.style.cssText = `
+            width: 100%;
+            margin: 0;
+        `;
+        const maxImageWidth = 200;
+        const maxImageHeight = 400;
+        imageSrcList.forEach(function(src) {
+            let image = document.createElement('img');
+            image.src = src;
+            image.style.cssText = `
+                cursor: pointer;
+                margin: 3px;
+                max-width: ${maxImageWidth}px;
+                max-height: ${maxImageHeight}px;
+            `;
+
+            image.addEventListener('click', function() {
+                let selectedImages = childWindow.querySelectorAll('img.selected');
+                selectedImages.forEach(function(selectedImage) {
+                    selectedImage.classList.remove('selected');
+                });
+
+                image.classList.add('selected');
+            });
+
+            childWindow.appendChild(image);
+        });
+
+        let saveButton = document.createElement('button');
+        saveButton.textContent = 'Save';
+        saveButton.style.cssText = `
+            position: absolute;
+            width: 64px;
+            height: 32px;
+            top: 2em;
+            right: 0;
+            margin-top: 0;
+            margin-right: 20px;
+        `;
+        saveButton.addEventListener('click', function() {
+            let selectedImages = childWindow.querySelectorAll('img.selected');
+            let preview_url = selectedImages.length > 0 ? selectedImages[0].src : '';
+            //console.log(purl);
+            GM_xmlhttpRequest({
+                method: "GET",
+                url: `http://localhost:7858/?url=${url}&preview_url=${preview_url}`,
+                onload: function(response) {
+                    console.log(response);
+                    showNotification(`[BSD] 傳送成功!成功將資料傳送至BSD軟體。`, 'success', 1500);
+                    $btn.text('BSD');
+                },
+                onerror: function(err) {
+                    console.log(err);
+                    showNotification(`[BSD] 傳送失敗!無法將資料傳送至BSD軟體。`, 'error', 1500);
+                    $btn.text('BSD');
+                }
+            });
+            container.remove();
+        });
+
+        childWindow.appendChild(saveButton);
+        container.appendChild(childWindow);
+
+        document.body.appendChild(container);
+
+        GM_addStyle(`
+            .selected {
+                border: 2px solid blue;
+            }
+        `);
+
+        function updateImageSizes() {
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            const maxColumns = Math.floor(windowWidth / (maxImageWidth + 20));
+            const maxRows = Math.floor(windowHeight / (maxImageHeight + 20));
+
+            const childWindowWidth = maxColumns * (maxImageWidth + 20);
+            const childWindowHeight = maxRows * (maxImageHeight + 20);
+
+            childWindow.style.width = childWindowWidth + 'px';
+            childWindow.style.height = childWindowHeight + 'px';
+        }
+
+        window.addEventListener('resize', updateImageSizes);
+        updateImageSizes();
+    }
+
+    // 通知插件與軟體狀態視窗
     function showNotification(message, type, duration) {
         const notificationContainer = $('<div>', { class: `notification ${type}` });
         const notificationText = $('<span>', { class: 'notification-text' }).text(message);
